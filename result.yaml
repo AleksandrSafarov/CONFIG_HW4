@@ -1,10 +1,8 @@
-- 1
-- 2
-- 3
-- 4
-- 5
-- 1
-- 0
-- 1
-- 0
-- 1
+- mnemonic: ldc
+  operand: 29
+- mnemonic: st
+  operand: 0
+- mnemonic: ldr
+  operand: 0
+- mnemonic: eq
+  operand: 0

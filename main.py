@@ -1,8 +1,15 @@
 import struct
 import yaml
 import argparse
+# Сопоставление мнемоник и кодов операций
+MNEMONICS_TO_OPCODE = {
+    "ldc": 2,    # Загрузка константы
+    "ldr": 12,   # Чтение из памяти
+    "st": 11,    # Запись в память
+    "eq": 7      # Операция "=="
+}
+OPCODE_TO_MNEMONICS = {v: k for k, v in MNEMONICS_TO_OPCODE.items()}
 
-# Описание команды УВМ
 class UVMInstruction:
     def __init__(self, opcode, operand):
         self.opcode = opcode  # 4 бита
@@ -23,9 +30,9 @@ class UVMInstruction:
 
     def to_dict(self):
         """Преобразовать команду в словарь для лога."""
-        return {"opcode": self.opcode, "operand": self.operand}
+        mnemonic = OPCODE_TO_MNEMONICS.get(self.opcode, f"unknown({self.opcode})")
+        return {"mnemonic": mnemonic, "operand": self.operand}
 
-# Ассемблер
 class UVMAssembler:
     def __init__(self):
         self.instructions = []
@@ -41,8 +48,13 @@ class UVMAssembler:
             if len(parts) != 2:
                 raise ValueError(f"Некорректная строка: {line}")
 
-            opcode = int(parts[0])
+            mnemonic = parts[0]
             operand = int(parts[1])
+
+            if mnemonic not in MNEMONICS_TO_OPCODE:
+                raise ValueError(f"Неизвестная мнемоника: {mnemonic}")
+
+            opcode = MNEMONICS_TO_OPCODE[mnemonic]
             self.instructions.append(UVMInstruction(opcode, operand))
 
     def save_binary(self, filepath):
@@ -57,7 +69,6 @@ class UVMAssembler:
         with open(filepath, "w") as f:
             yaml.dump(log, f, sort_keys=False)
 
-# Интерпретатор
 class UVMInterpreter:
     def __init__(self, memory_size=1024):
         self.memory = [0] * memory_size  # Память УВМ
@@ -82,16 +93,17 @@ class UVMInterpreter:
 
     def _execute_instruction(self, instr):
         """Выполнить одну команду."""
-        if instr.opcode == 2:  # Загрузка константы
+        if instr.opcode == MNEMONICS_TO_OPCODE["ldc"]:  # Загрузка константы
             self.accumulator = instr.operand
-        elif instr.opcode == 12:  # Чтение из памяти
+        elif instr.opcode == MNEMONICS_TO_OPCODE["ldr"]:  # Чтение из памяти
             self.accumulator = self.memory[instr.operand]
-        elif instr.opcode == 11:  # Запись в память
+        elif instr.opcode == MNEMONICS_TO_OPCODE["st"]:  # Запись в память
             self.memory[instr.operand] = self.accumulator
-        elif instr.opcode == 7:  # Операция "=="
+        elif instr.opcode == MNEMONICS_TO_OPCODE["eq"]:  # Операция "=="
             self.accumulator = int(self.accumulator == self.memory[instr.operand])
         else:
             raise ValueError(f"Неизвестная команда: {instr.opcode}")
+
 
 def main():
     parser = argparse.ArgumentParser(description="UVM Toolchain")

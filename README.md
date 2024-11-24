@@ -104,6 +104,13 @@ python main.py assemble test.txt program.bin log.yaml
 ```
 python main.py interpret program.bin result.yaml 0:10
 ```
+### Запуск юнит тестов
+1. Склонировать проект
+2. Перейти в папку с проектом в терминале
+3. Запустить тесты
+```
+python test.py
+```
 
 ## Описание функций и настроек
 

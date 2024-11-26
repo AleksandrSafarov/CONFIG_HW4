@@ -117,5 +117,78 @@ class TestUVM(unittest.TestCase):
                 self.assertEqual(actual.opcode, expected.opcode)
                 self.assertEqual(actual.operand, expected.operand)
 
+    def test_assembler_and_interpreter_extended(self):
+        # Тестовая программа с мнемониками
+        source_code = """
+        ldc 1
+        st 0
+        ldc 2
+        st 1
+        ldc 3
+        st 2
+        ldc 4
+        st 3
+        ldc 5
+        st 4
+        ldc 1
+        st 5
+        ldc 0
+        st 6
+        ldc 3
+        st 7
+        ldc 0
+        st 8
+        ldc 5
+        st 9
+        ldr 0
+        eq 5
+        st 5
+        ldr 1
+        eq 6
+        st 6
+        ldr 2
+        eq 7
+        st 7
+        ldr 3
+        eq 8
+        st 8
+        ldr 4
+        eq 9
+        st 9
+        """
+        
+        assembler = UVMAssembler()
+        assembler.assemble(source_code)
+        
+        # Сохранение бинарных данных в буфер
+        binary_data = BytesIO()
+        for instr in assembler.instructions:
+            binary_data.write(instr.to_bytes())
+        
+        # Проверка выполнения программы
+        interpreter = UVMInterpreter()
+        binary_data.seek(0)
+        binary = binary_data.read()
+
+        # Сохранение бинарных данных в файл
+        binary_path = 'test_binary_extended.bin'
+        with open(binary_path, 'wb') as f:
+            f.write(binary)
+
+        # Интерпретируем бинарный файл
+        result_path = 'test_result_extended.yml'
+        interpreter.execute(binary_path, result_path, (0, 10))
+
+        # Проверка состояния памяти
+        # Ожидаем, что после выполнения программы память[5:10] будет заполнена результатами сравнения
+        # memory[5] = 1 (1 == 1), memory[6] = 1 (2 == 2), ..., memory[9] = 1 (5 == 5)
+        expected_memory = [1, 2, 3, 4, 5, 1, 0, 1, 0, 1]
+        self.assertEqual(interpreter.memory[:10], expected_memory)
+
+        # Удаление временных файлов
+        os.remove(binary_path)
+        os.remove(result_path)
+
+
 if __name__ == "__main__":
     unittest.main()

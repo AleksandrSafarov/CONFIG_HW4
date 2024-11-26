@@ -179,9 +179,6 @@ class TestUVM(unittest.TestCase):
         result_path = 'test_result_extended.yml'
         interpreter.execute(binary_path, result_path, (0, 10))
 
-        # Проверка состояния памяти
-        # Ожидаем, что после выполнения программы память[5:10] будет заполнена результатами сравнения
-        # memory[5] = 1 (1 == 1), memory[6] = 1 (2 == 2), ..., memory[9] = 1 (5 == 5)
         expected_memory = [1, 2, 3, 4, 5, 1, 0, 1, 0, 1]
         self.assertEqual(interpreter.memory[:10], expected_memory)
 
